@@ -1,0 +1,368 @@
+<div class="app-shell">
+
+  <header class="topbar">
+    <div class="topbar__content">
+      <div class="brand">
+        <div class="brand__mark">
+          IH
+        </div>
+
+        <div>
+          <strong>InvaHub</strong>
+          <span>Control de inversiones</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="profile-button"
+        aria-label="Perfil del usuario"
+      >
+        OO
+      </button>
+    </div>
+  </header>
+
+  <main class="dashboard">
+
+    <section class="welcome">
+      <div>
+        <span class="eyebrow">
+          Resumen financiero
+        </span>
+
+        <h1>Tu inversión</h1>
+
+        <p>
+          Consulta tu capital, retornos y ganancias.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="primary-button desktop-action"
+        (click)="transactionForm.scrollIntoView({ behavior: 'smooth' })"
+      >
+        + Nuevo movimiento
+      </button>
+    </section>
+
+    <section
+      class="summary-grid"
+      aria-label="Resumen de inversión"
+    >
+
+      <article class="summary-card summary-card--primary">
+        <span>Capital invertido</span>
+
+        <strong>
+          {{ invested | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </strong>
+
+        <small>
+          Total aportado
+        </small>
+      </article>
+
+      <article class="summary-card">
+        <span>Capital retornado</span>
+
+        <strong>
+          {{ returned | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </strong>
+
+        <small>
+          Capital recuperado
+        </small>
+      </article>
+
+      <article class="summary-card">
+        <span>Por retornar</span>
+
+        <strong>
+          {{ balanceToReturn | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </strong>
+
+        <small>
+          Capital pendiente
+        </small>
+      </article>
+
+      <article class="summary-card summary-card--profit">
+        <span>Ganancias</span>
+
+        <strong>
+          {{ profit | currency:'DOP':'symbol-narrow':'1.0-0' }}
+        </strong>
+
+        <small>
+          Profit acumulado
+        </small>
+      </article>
+
+    </section>
+
+    <div class="content-grid">
+
+      <section
+        #transactionForm
+        class="panel transaction-panel"
+      >
+
+        <div class="panel__header">
+          <div>
+            <span class="eyebrow">
+              Registro
+            </span>
+
+            <h2>Nuevo movimiento</h2>
+          </div>
+        </div>
+
+        <form
+          class="transaction-form"
+          (ngSubmit)="submit()"
+        >
+
+          <fieldset class="type-selector">
+            <legend>Tipo de movimiento</legend>
+
+            <div class="segmented-control">
+
+              <label
+                [class.active]="transactionType === 'INVESTMENT'"
+              >
+                <input
+                  type="radio"
+                  name="transactionType"
+                  value="INVESTMENT"
+                  [(ngModel)]="transactionType"
+                />
+
+                Inversión
+              </label>
+
+              <label
+                [class.active]="transactionType === 'RETURN'"
+              >
+                <input
+                  type="radio"
+                  name="transactionType"
+                  value="RETURN"
+                  [(ngModel)]="transactionType"
+                />
+
+                Retorno
+              </label>
+
+            </div>
+          </fieldset>
+
+          <div class="form-field">
+            <label for="amount">
+              Monto
+            </label>
+
+            <div class="money-input">
+              <span>RD$</span>
+
+              <input
+                id="amount"
+                name="amount"
+                type="number"
+                inputmode="decimal"
+                placeholder="0.00"
+                [(ngModel)]="amount"
+                required
+              />
+            </div>
+          </div>
+
+          @if (isReturn) {
+
+            <div class="return-grid">
+
+              <div class="form-field">
+                <label for="capital">
+                  Capital
+                </label>
+
+                <div class="money-input">
+                  <span>RD$</span>
+
+                  <input
+                    id="capital"
+                    name="capital"
+                    type="number"
+                    inputmode="decimal"
+                    placeholder="0.00"
+                    [(ngModel)]="capital"
+                  />
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="profit">
+                  Ganancia
+                </label>
+
+                <div class="money-input">
+                  <span>RD$</span>
+
+                  <input
+                    id="profit"
+                    name="profit"
+                    type="number"
+                    inputmode="decimal"
+                    placeholder="0.00"
+                    [(ngModel)]="transactionProfit"
+                  />
+                </div>
+              </div>
+
+            </div>
+
+          }
+
+          <div class="form-field">
+            <label for="description">
+              Descripción
+              <span>Opcional</span>
+            </label>
+
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              placeholder="Ej. Retorno correspondiente a septiembre"
+              [(ngModel)]="description"
+            ></textarea>
+          </div>
+
+          <div class="form-field">
+            <label>
+              Comprobante
+              <span>Opcional</span>
+            </label>
+
+            <label class="upload-area">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+              />
+
+              <span class="upload-area__icon">
+                +
+              </span>
+
+              <strong>Agregar comprobante</strong>
+
+              <small>
+                JPG, PNG o WEBP
+              </small>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            class="primary-button full-width"
+          >
+            Guardar movimiento
+          </button>
+
+        </form>
+
+      </section>
+
+      <section class="panel history-panel">
+
+        <div class="panel__header">
+          <div>
+            <span class="eyebrow">
+              Actividad
+            </span>
+
+            <h2>Movimientos recientes</h2>
+          </div>
+
+          <span class="transaction-count">
+            {{ transactions.length }}
+          </span>
+        </div>
+
+        <div class="transaction-list">
+
+          @for (transaction of transactions; track transaction.id) {
+
+            <article class="transaction-item">
+
+              <div
+                class="transaction-icon"
+                [class.transaction-icon--return]="transaction.type === 'RETURN'"
+              >
+                {{ transaction.type === 'INVESTMENT' ? '↓' : '↑' }}
+              </div>
+
+              <div class="transaction-info">
+                <strong>
+                  {{
+                    transaction.type === 'INVESTMENT'
+                      ? 'Inversión'
+                      : 'Retorno'
+                  }}
+                </strong>
+
+                <span>
+                  {{
+                    transaction.createdAt
+                      | date:'dd MMM yyyy'
+                  }}
+                </span>
+
+                @if (transaction.description) {
+                  <small>
+                    {{ transaction.description }}
+                  </small>
+                }
+              </div>
+
+              <div class="transaction-amount">
+                <strong>
+                  {{
+                    transaction.amount
+                      | currency:'DOP':'symbol-narrow':'1.0-0'
+                  }}
+                </strong>
+
+                @if (transaction.type === 'RETURN') {
+                  <span>
+                    +{{
+                      transaction.profit
+                        | currency:'DOP':'symbol-narrow':'1.0-0'
+                    }} profit
+                  </span>
+                }
+              </div>
+
+            </article>
+
+          } @empty {
+
+            <div class="empty-state">
+              <strong>No hay movimientos</strong>
+              <span>
+                Tus inversiones y retornos aparecerán aquí.
+              </span>
+            </div>
+
+          }
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>

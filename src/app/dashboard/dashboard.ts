@@ -1,15 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-interface Transaction {
+import { Transaction } from '../../utils/transaction.model';
+import { TransactionsService } from '../../utils/transactions.service';
+
+interface Investor {
   id: string;
-  type: 'INVESTMENT' | 'RETURN';
-  amount: number;
-  capital: number;
-  profit: number;
-  description?: string;
-  createdAt: Date;
+  name: string;
 }
 
 @Component({
@@ -23,54 +26,265 @@ interface Transaction {
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Dashboard {
-  invested = 35000;
-  returned = 10000;
-  profit = 2000;
-
-  transactionType: 'INVESTMENT' | 'RETURN' = 'INVESTMENT';
-
-  amount: number | null = null;
-  capital: number | null = null;
-  transactionProfit: number | null = null;
-  description = '';
-
-  transactions: Transaction[] = [
+export class Dashboard implements OnInit {
+  readonly investors: Investor[] = [
     {
-      id: '1',
-      type: 'RETURN',
-      amount: 12000,
-      capital: 10000,
-      profit: 2000,
-      description: 'Retorno de agosto',
-      createdAt: new Date(),
+      id: 'bernabe-oviedo',
+      name: 'Bernabe Oviedo',
     },
     {
-      id: '2',
-      type: 'INVESTMENT',
-      amount: 35000,
-      capital: 35000,
-      profit: 0,
-      description: 'Inversión inicial',
-      createdAt: new Date(),
+      id: 'neftali-oviedo',
+      name: 'Neftali Oviedo',
+    },
+    {
+      id: 'dominic-minaya',
+      name: 'Dominic Minaya',
+    },
+    {
+      id: 'otniel-oviedo',
+      name: 'Otniel Oviedo',
     },
   ];
 
-  get balanceToReturn(): number {
-    return this.invested - this.returned;
+  selectedInvestorId = '';
+  filterInvestorId = 'ALL';
+
+  transactionType: 'INVESTMENT' | 'RETURN' =
+    'INVESTMENT';
+
+  amount: number | null = null;
+  description = '';
+
+  transactions: Transaction[] = [];
+
+  invested = 0;
+  returned = 0;
+  profit = 0;
+
+  loading = false;
+  saving = false;
+
+  currentPage = 1;
+  readonly pageSize = 5;
+
+  constructor(
+    private readonly transactionsService:
+      TransactionsService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
+
+  ngOnInit(): void {
+    this.loadTransactions();
   }
 
-  get isReturn(): boolean {
-    return this.transactionType === 'RETURN';
+  get balanceToReturn(): number {
+    return Math.max(
+      this.invested - this.returned,
+      0,
+    );
+  }
+
+  get totalPages(): number {
+    return Math.max(
+      Math.ceil(
+        this.transactions.length /
+          this.pageSize,
+      ),
+      1,
+    );
+  }
+
+  get paginatedTransactions(): Transaction[] {
+    const start =
+      (this.currentPage - 1) *
+      this.pageSize;
+
+    return this.transactions.slice(
+      start,
+      start + this.pageSize,
+    );
+  }
+
+  get hasPreviousPage(): boolean {
+    return this.currentPage > 1;
+  }
+
+  get hasNextPage(): boolean {
+    return (
+      this.currentPage <
+      this.totalPages
+    );
+  }
+
+  loadTransactions(): void {
+    this.loading = true;
+
+    const investorId =
+      this.filterInvestorId === 'ALL'
+        ? undefined
+        : this.filterInvestorId;
+
+    this.transactionsService
+      .findAll(investorId)
+      .subscribe({
+        next: transactions => {
+          this.transactions =
+            transactions ?? [];
+
+          this.currentPage = 1;
+
+          this.calculateSummary();
+          this.finishLoading();
+        },
+
+        error: error => {
+          console.error(
+            'Error cargando transacciones:',
+            error,
+          );
+
+          this.transactions = [];
+          this.resetSummary();
+
+          this.finishLoading();
+        },
+      });
+  }
+
+  onFilterChange(): void {
+    this.loadTransactions();
   }
 
   submit(): void {
-    console.log({
-      type: this.transactionType,
-      amount: this.amount,
-      capital: this.capital,
-      profit: this.transactionProfit,
-      description: this.description,
-    });
+    if (
+      !this.selectedInvestorId ||
+      !this.amount ||
+      this.amount <= 0 ||
+      this.saving
+    ) {
+      return;
+    }
+
+    this.saving = true;
+
+    this.transactionsService
+      .create({
+        user_id:
+          this.selectedInvestorId,
+        type: this.transactionType,
+        amount: this.amount,
+        description:
+          this.description.trim() ||
+          undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.resetForm();
+          this.saving = false;
+          this.loadTransactions();
+        },
+
+        error: error => {
+          console.error(
+            'Error guardando movimiento:',
+            error,
+          );
+
+          this.saving = false;
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  previousPage(): void {
+    if (!this.hasPreviousPage) {
+      return;
+    }
+
+    this.currentPage--;
+  }
+
+  nextPage(): void {
+    if (!this.hasNextPage) {
+      return;
+    }
+
+    this.currentPage++;
+  }
+
+  getInvestorName(
+    userId: string,
+  ): string {
+    return (
+      this.investors.find(
+        investor =>
+          investor.id === userId,
+      )?.name ?? userId
+    );
+  }
+
+  private calculateSummary(): void {
+    const summary =
+      this.transactions.reduce(
+        (acc, transaction) => {
+          if (
+            transaction.type ===
+            'INVESTMENT'
+          ) {
+            acc.invested += Number(
+              transaction.amount,
+            );
+          }
+
+          if (
+            transaction.type ===
+            'RETURN'
+          ) {
+            acc.returned += Number(
+              transaction.capital,
+            );
+
+            acc.profit += Number(
+              transaction.profit,
+            );
+          }
+
+          return acc;
+        },
+        {
+          invested: 0,
+          returned: 0,
+          profit: 0,
+        },
+      );
+
+    this.invested =
+      summary.invested;
+
+    this.returned =
+      summary.returned;
+
+    this.profit =
+      summary.profit;
+  }
+
+  private resetSummary(): void {
+    this.invested = 0;
+    this.returned = 0;
+    this.profit = 0;
+  }
+
+  private resetForm(): void {
+    this.selectedInvestorId = '';
+    this.transactionType =
+      'INVESTMENT';
+
+    this.amount = null;
+    this.description = '';
+  }
+
+  private finishLoading(): void {
+    this.loading = false;
+    this.cdr.markForCheck();
   }
 }

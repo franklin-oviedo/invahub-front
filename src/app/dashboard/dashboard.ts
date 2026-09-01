@@ -47,7 +47,8 @@ export class Dashboard implements OnInit {
   ];
 
   selectedInvestorId = '';
-  filterInvestorId = 'ALL';
+
+  dashboardInvestorId = 'ALL';
 
   transactionType: 'INVESTMENT' | 'RETURN' =
     'INVESTMENT';
@@ -65,6 +66,7 @@ export class Dashboard implements OnInit {
   saving = false;
 
   currentPage = 1;
+
   readonly pageSize = 5;
 
   constructor(
@@ -116,13 +118,38 @@ export class Dashboard implements OnInit {
     );
   }
 
+  get selectedDashboardInvestorName(): string {
+    if (
+      this.dashboardInvestorId ===
+      'ALL'
+    ) {
+      return 'Todos los inversionistas';
+    }
+
+    return (
+      this.investors.find(
+        investor =>
+          investor.id ===
+          this.dashboardInvestorId,
+      )?.name ??
+      'Inversionista'
+    );
+  }
+
+  onDashboardInvestorChange(): void {
+    this.currentPage = 1;
+
+    this.loadTransactions();
+  }
+
   loadTransactions(): void {
     this.loading = true;
 
     const investorId =
-      this.filterInvestorId === 'ALL'
+      this.dashboardInvestorId ===
+      'ALL'
         ? undefined
-        : this.filterInvestorId;
+        : this.dashboardInvestorId;
 
     this.transactionsService
       .findAll(investorId)
@@ -134,6 +161,7 @@ export class Dashboard implements OnInit {
           this.currentPage = 1;
 
           this.calculateSummary();
+
           this.finishLoading();
         },
 
@@ -144,15 +172,12 @@ export class Dashboard implements OnInit {
           );
 
           this.transactions = [];
+
           this.resetSummary();
 
           this.finishLoading();
         },
       });
-  }
-
-  onFilterChange(): void {
-    this.loadTransactions();
   }
 
   submit(): void {
@@ -171,8 +196,10 @@ export class Dashboard implements OnInit {
       .create({
         user_id:
           this.selectedInvestorId,
-        type: this.transactionType,
-        amount: this.amount,
+        type:
+          this.transactionType,
+        amount:
+          this.amount,
         description:
           this.description.trim() ||
           undefined,
@@ -180,7 +207,9 @@ export class Dashboard implements OnInit {
       .subscribe({
         next: () => {
           this.resetForm();
+
           this.saving = false;
+
           this.loadTransactions();
         },
 
@@ -191,13 +220,16 @@ export class Dashboard implements OnInit {
           );
 
           this.saving = false;
+
           this.cdr.markForCheck();
         },
       });
   }
 
   previousPage(): void {
-    if (!this.hasPreviousPage) {
+    if (
+      !this.hasPreviousPage
+    ) {
       return;
     }
 
@@ -205,7 +237,9 @@ export class Dashboard implements OnInit {
   }
 
   nextPage(): void {
-    if (!this.hasNextPage) {
+    if (
+      !this.hasNextPage
+    ) {
       return;
     }
 
@@ -219,7 +253,8 @@ export class Dashboard implements OnInit {
       this.investors.find(
         investor =>
           investor.id === userId,
-      )?.name ?? userId
+      )?.name ??
+      userId
     );
   }
 
@@ -231,22 +266,25 @@ export class Dashboard implements OnInit {
             transaction.type ===
             'INVESTMENT'
           ) {
-            acc.invested += Number(
-              transaction.amount,
-            );
+            acc.invested +=
+              Number(
+                transaction.amount,
+              );
           }
 
           if (
             transaction.type ===
             'RETURN'
           ) {
-            acc.returned += Number(
-              transaction.capital,
-            );
+            acc.returned +=
+              Number(
+                transaction.capital,
+              );
 
-            acc.profit += Number(
-              transaction.profit,
-            );
+            acc.profit +=
+              Number(
+                transaction.profit,
+              );
           }
 
           return acc;
@@ -276,6 +314,7 @@ export class Dashboard implements OnInit {
 
   private resetForm(): void {
     this.selectedInvestorId = '';
+
     this.transactionType =
       'INVESTMENT';
 
@@ -285,6 +324,7 @@ export class Dashboard implements OnInit {
 
   private finishLoading(): void {
     this.loading = false;
+
     this.cdr.markForCheck();
   }
 }

@@ -1,314 +1,182 @@
 <div class="app-shell">
-
   <header class="topbar">
     <div class="topbar__content">
-
       <div class="brand">
-        <div class="brand__mark">
-          IH
-        </div>
-
+        <div class="brand__mark">IH</div>
         <div class="brand__text">
           <strong>InvaHub</strong>
           <span>Control de inversiones</span>
         </div>
       </div>
-
     </div>
   </header>
 
   <main class="dashboard">
-
     <section class="welcome">
-
       <div>
-        <span class="eyebrow">
-          Resumen financiero
-        </span>
-
-        <h1>
-          Inversiones
-        </h1>
-
-        <p>
-          Consulta el capital invertido, retornos,
-          ganancias y movimientos recientes.
-        </p>
+        <span class="eyebrow">Resumen financiero</span>
+        <h1>Inversiones</h1>
+        <p>Consulta el capital invertido, retornos, ganancias y movimientos recientes.</p>
       </div>
-
       <button
         type="button"
         class="primary-button desktop-action"
-        (click)="
-          transactionForm.scrollIntoView({
-            behavior: 'smooth'
-          })
-        "
+        (click)="transactionForm.scrollIntoView({ behavior: 'smooth' })"
       >
         <span>+</span>
         Nuevo movimiento
       </button>
-
     </section>
 
-    <section
-      class="summary-grid"
-      aria-label="Resumen financiero"
-    >
-
-      <article
-        class="summary-card summary-card--primary"
-      >
-
-        <div class="summary-card__header">
-          <span>
-            Capital invertido
-          </span>
-
-          <div class="summary-card__icon">
-            ↓
-          </div>
+    <section class="dashboard-filter" aria-label="Filtro del dashboard">
+      <div class="dashboard-filter__content">
+        <div class="dashboard-filter__title">
+          <span class="eyebrow">Vista actual</span>
+          <strong>{{ selectedDashboardInvestorName }}</strong>
         </div>
+        <div class="dashboard-filter__field">
+          <label for="dashboardInvestor">Filtrar por inversionista</label>
+          <select
+            id="dashboardInvestor"
+            name="dashboardInvestor"
+            [(ngModel)]="dashboardInvestorId"
+            (ngModelChange)="onDashboardInvestorChange()"
+          >
+            <option value="ALL">Todos los inversionistas</option>
+            @for (investor of investors; track investor.id) {
+              <option [value]="investor.id">{{ investor.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </section>
 
+    <section class="summary-grid" aria-label="Resumen financiero">
+      <article class="summary-card summary-card--primary">
+        <div class="summary-card__header">
+          <span>Capital invertido</span>
+          <div class="summary-card__icon">↓</div>
+        </div>
         <strong>
-          {{
-            invested
-              | currency:
-                'DOP':
-                'symbol-narrow':
-                '1.0-0'
-          }}
+          {{ invested | currency:'DOP':'symbol-narrow':'1.0-0' }}
         </strong>
-
-        <small>
-          Total aportado
-        </small>
-
+        <small>Total aportado</small>
       </article>
 
       <article class="summary-card">
-
         <div class="summary-card__header">
-          <span>
-            Capital retornado
-          </span>
-
-          <div class="summary-card__icon">
-            ↑
-          </div>
+          <span>Capital retornado</span>
+          <div class="summary-card__icon">↑</div>
         </div>
-
         <strong>
-          {{
-            returned
-              | currency:
-                'DOP':
-                'symbol-narrow':
-                '1.0-0'
-          }}
+          {{ returned | currency:'DOP':'symbol-narrow':'1.0-0' }}
         </strong>
-
-        <small>
-          Capital recuperado
-        </small>
-
+        <small>Capital recuperado</small>
       </article>
 
       <article class="summary-card">
-
         <div class="summary-card__header">
-          <span>
-            Por retornar
-          </span>
-
-          <div class="summary-card__icon">
-            ◷
-          </div>
+          <span>Por retornar</span>
+          <div class="summary-card__icon">◷</div>
         </div>
-
         <strong>
-          {{
-            balanceToReturn
-              | currency:
-                'DOP':
-                'symbol-narrow':
-                '1.0-0'
-          }}
+          {{ balanceToReturn | currency:'DOP':'symbol-narrow':'1.0-0' }}
         </strong>
-
-        <small>
-          Capital pendiente
-        </small>
-
+        <small>Capital pendiente</small>
       </article>
 
-      <article
-        class="summary-card summary-card--profit"
-      >
-
+      <article class="summary-card summary-card--profit">
         <div class="summary-card__header">
-          <span>
-            Ganancias
-          </span>
-
-          <div class="summary-card__icon">
-            +
-          </div>
+          <span>Ganancias</span>
+          <div class="summary-card__icon">+</div>
         </div>
-
         <strong>
-          {{
-            profit
-              | currency:
-                'DOP':
-                'symbol-narrow':
-                '1.0-0'
-          }}
+          {{ profit | currency:'DOP':'symbol-narrow':'1.0-0' }}
         </strong>
-
-        <small>
-          Profit acumulado
-        </small>
-
+        <small>Profit acumulado</small>
       </article>
-
     </section>
 
     <div class="content-grid">
-
       <section
         #transactionForm
         class="panel transaction-panel"
       >
-
         <div class="panel__header">
-
           <div>
-            <span class="eyebrow">
-              Registro
-            </span>
-
-            <h2>
-              Nuevo movimiento
-            </h2>
-
-            <p>
-              Registra una inversión o retorno.
-            </p>
+            <span class="eyebrow">Registro</span>
+            <h2>Nuevo movimiento</h2>
+            <p>Registra una inversión o retorno.</p>
           </div>
-
         </div>
 
         <form
+          #transactionFormModel="ngForm"
           class="transaction-form"
           (ngSubmit)="submit()"
         >
-
           <div class="form-field">
-
             <label for="investor">
               Inversionista
+              <span class="required">*</span>
             </label>
-
             <select
+              #investorInput="ngModel"
               id="investor"
               name="investor"
               [(ngModel)]="selectedInvestorId"
               required
             >
-
-              <option value="">
-                Selecciona un inversionista
-              </option>
-
-              @for (
-                investor of investors;
-                track investor.id
-              ) {
-                <option
-                  [value]="investor.id"
-                >
-                  {{ investor.name }}
-                </option>
+              <option value="" disabled>Selecciona un inversionista</option>
+              @for (investor of investors; track investor.id) {
+                <option [value]="investor.id">{{ investor.name }}</option>
               }
-
             </select>
-
+            @if (investorInput.invalid && investorInput.touched) {
+              <small class="field-error">
+                Debes seleccionar un inversionista.
+              </small>
+            }
           </div>
 
           <fieldset class="type-selector">
-
-            <legend>
-              Tipo de movimiento
-            </legend>
-
+            <legend>Tipo de movimiento</legend>
             <div class="segmented-control">
-
-              <label
-                [class.active]="
-                  transactionType ===
-                  'INVESTMENT'
-                "
-              >
-
+              <label [class.active]="transactionType === 'INVESTMENT'">
                 <input
                   type="radio"
                   name="transactionType"
                   value="INVESTMENT"
                   [(ngModel)]="transactionType"
                 />
-
-                <span class="segment-icon">
-                  ↓
-                </span>
-
-                <span>
-                  Inversión
-                </span>
-
+                <span class="segment-icon">↓</span>
+                <span>Inversión</span>
               </label>
-
-              <label
-                [class.active]="
-                  transactionType ===
-                  'RETURN'
-                "
-              >
-
+              <label [class.active]="transactionType === 'RETURN'">
                 <input
                   type="radio"
                   name="transactionType"
                   value="RETURN"
                   [(ngModel)]="transactionType"
                 />
-
-                <span class="segment-icon">
-                  ↑
-                </span>
-
-                <span>
-                  Retorno
-                </span>
-
+                <span class="segment-icon">↑</span>
+                <span>Retorno</span>
               </label>
-
             </div>
-
           </fieldset>
 
           <div class="form-field">
-
             <label for="amount">
               Monto
+              <span class="required">*</span>
             </label>
-
-            <div class="money-input">
-
-              <span>
-                RD$
-              </span>
-
+            <div
+              class="money-input"
+              [class.money-input--invalid]="amountInput.invalid && amountInput.touched"
+            >
+              <span>RD$</span>
               <input
+                #amountInput="ngModel"
                 id="amount"
                 name="amount"
                 type="number"
@@ -319,21 +187,19 @@
                 [(ngModel)]="amount"
                 required
               />
-
             </div>
-
+            @if (amountInput.invalid && amountInput.touched) {
+              <small class="field-error">
+                Introduce un monto mayor que cero.
+              </small>
+            }
           </div>
 
           <div class="form-field">
-
             <label for="description">
               Descripción
-
-              <span>
-                Opcional
-              </span>
+              <span>Opcional</span>
             </label>
-
             <textarea
               id="description"
               name="description"
@@ -342,411 +208,188 @@
               placeholder="Ej. Retorno correspondiente a septiembre"
               [(ngModel)]="description"
             ></textarea>
-
           </div>
 
           <div class="form-field">
-
             <label>
               Comprobante
-
-              <span>
-                Opcional
-              </span>
+              <span>Opcional</span>
             </label>
-
             <label class="upload-area">
-
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
               />
-
-              <span class="upload-area__icon">
-                +
-              </span>
-
-              <strong>
-                Agregar comprobante
-              </strong>
-
-              <small>
-                JPG, PNG o WEBP
-              </small>
-
+              <span class="upload-area__icon">+</span>
+              <strong>Agregar comprobante</strong>
+              <small>JPG, PNG o WEBP</small>
             </label>
-
           </div>
 
           <button
             type="submit"
             class="primary-button full-width"
-            [disabled]="saving"
+            [disabled]="transactionFormModel.invalid || saving"
           >
-
             @if (saving) {
-
               <span class="button-loader"></span>
-
               Guardando...
-
             } @else {
-
               Guardar movimiento
-
             }
-
           </button>
-
         </form>
-
       </section>
 
-      <section
-        class="panel history-panel"
-      >
-
+      <section class="panel history-panel">
         <div class="history-header">
-
           <div>
-            <span class="eyebrow">
-              Actividad
-            </span>
-
-            <h2>
-              Movimientos recientes
-            </h2>
-
+            <span class="eyebrow">Actividad</span>
+            <h2>Movimientos recientes</h2>
             <p>
-              Historial de inversiones y retornos.
+              @if (dashboardInvestorId === 'ALL') {
+                Historial de todos los inversionistas.
+              } @else {
+                Historial de {{ selectedDashboardInvestorName }}.
+              }
             </p>
           </div>
-
           <span
             class="transaction-count"
             aria-label="Cantidad de movimientos"
           >
             {{ transactions.length }}
           </span>
-
-        </div>
-
-        <div class="history-toolbar">
-
-          <div class="history-filter">
-
-            <label for="filterInvestor">
-              Inversionista
-            </label>
-
-            <select
-              id="filterInvestor"
-              name="filterInvestor"
-              [(ngModel)]="filterInvestorId"
-              (ngModelChange)="
-                onFilterChange()
-              "
-            >
-
-              <option value="ALL">
-                Todos los inversionistas
-              </option>
-
-              @for (
-                investor of investors;
-                track investor.id
-              ) {
-                <option
-                  [value]="investor.id"
-                >
-                  {{ investor.name }}
-                </option>
-              }
-
-            </select>
-
-          </div>
-
         </div>
 
         @if (loading) {
-
           <div class="loading-state">
-
             <span class="loader"></span>
-
-            <strong>
-              Cargando movimientos
-            </strong>
-
-            <small>
-              Consultando la actividad reciente...
-            </small>
-
+            <strong>Cargando movimientos</strong>
+            <small>Consultando la actividad reciente...</small>
           </div>
-
         } @else {
-
           @if (transactions.length > 0) {
-
             <div class="transaction-list">
-
-              @for (
-                transaction of paginatedTransactions;
-                track transaction.id
-              ) {
-
-                <article
-                  class="transaction-item"
-                >
-
+              @for (transaction of paginatedTransactions; track transaction.id) {
+                <article class="transaction-item">
                   <div
                     class="transaction-icon"
-                    [class.transaction-icon--return]="
-                      transaction.type ===
-                      'RETURN'
-                    "
+                    [class.transaction-icon--return]="transaction.type === 'RETURN'"
                   >
-                    {{
-                      transaction.type ===
-                      'INVESTMENT'
-                        ? '↓'
-                        : '↑'
-                    }}
+                    {{ transaction.type === 'INVESTMENT' ? '↓' : '↑' }}
                   </div>
 
-                  <div
-                    class="transaction-info"
-                  >
-
-                    <div
-                      class="transaction-info__top"
-                    >
-
+                  <div class="transaction-info">
+                    <div class="transaction-info__top">
                       <strong>
-                        {{
-                          transaction.type ===
-                          'INVESTMENT'
-                            ? 'Inversión'
-                            : 'Retorno'
-                        }}
+                        {{ transaction.type === 'INVESTMENT' ? 'Inversión' : 'Retorno' }}
                       </strong>
-
                       <span
                         class="transaction-type"
-                        [class.transaction-type--return]="
-                          transaction.type ===
-                          'RETURN'
-                        "
+                        [class.transaction-type--return]="transaction.type === 'RETURN'"
                       >
-                        {{
-                          transaction.type ===
-                          'INVESTMENT'
-                            ? 'Aporte'
-                            : 'Retorno'
-                        }}
+                        {{ transaction.type === 'INVESTMENT' ? 'Aporte' : 'Retorno' }}
                       </span>
-
                     </div>
 
-                    <span
-                      class="transaction-investor"
-                    >
-                      {{
-                        getInvestorName(
-                          transaction.user_id
-                        )
-                      }}
+                    <span class="transaction-investor">
+                      {{ getInvestorName(transaction.user_id) }}
                     </span>
 
-                    <span
-                      class="transaction-date"
-                    >
-                      {{
-                        transaction.created_at
-                          | date:
-                            'dd MMM yyyy'
-                      }}
+                    <span class="transaction-date">
+                      {{ transaction.created_at | date:'dd MMM yyyy' }}
                     </span>
 
-                    @if (
-                      transaction.description
-                    ) {
-
-                      <small
-                        class="transaction-description"
-                      >
-                        {{
-                          transaction.description
-                        }}
+                    @if (transaction.description) {
+                      <small class="transaction-description">
+                        {{ transaction.description }}
                       </small>
-
                     }
-
                   </div>
 
-                  <div
-                    class="transaction-amount"
-                  >
-
+                  <div class="transaction-amount">
                     <strong>
-                      {{
-                        transaction.amount
-                          | currency:
-                            'DOP':
-                            'symbol-narrow':
-                            '1.0-0'
-                      }}
+                      {{ transaction.amount | currency:'DOP':'symbol-narrow':'1.0-0' }}
                     </strong>
 
-                    @if (
-                      transaction.type ===
-                      'RETURN'
-                    ) {
-
+                    @if (transaction.type === 'RETURN') {
                       <small>
                         Capital
-                        {{
-                          transaction.capital
-                            | currency:
-                              'DOP':
-                              'symbol-narrow':
-                              '1.0-0'
-                        }}
+                        {{ transaction.capital | currency:'DOP':'symbol-narrow':'1.0-0' }}
                       </small>
 
-                      @if (
-                        transaction.profit > 0
-                      ) {
-
-                        <span
-                          class="transaction-profit"
-                        >
-                          +
-                          {{
-                            transaction.profit
-                              | currency:
-                                'DOP':
-                                'symbol-narrow':
-                                '1.0-0'
-                          }}
+                      @if (transaction.profit > 0) {
+                        <span class="transaction-profit">
+                          +{{ transaction.profit | currency:'DOP':'symbol-narrow':'1.0-0' }}
                           profit
                         </span>
-
                       }
-
                     }
-
                   </div>
-
                 </article>
-
               }
-
             </div>
 
-            @if (
-              transactions.length >
-              pageSize
-            ) {
-
+            @if (transactions.length > pageSize) {
               <div class="pagination">
-
-                <span
-                  class="pagination__summary"
-                >
+                <span class="pagination__summary">
                   Mostrando
-                  {{
-                    (currentPage - 1)
-                      * pageSize + 1
-                  }}
+                  {{ (currentPage - 1) * pageSize + 1 }}
                   -
                   {{
-                    currentPage * pageSize >
-                    transactions.length
+                    currentPage * pageSize > transactions.length
                       ? transactions.length
                       : currentPage * pageSize
                   }}
-                  de
-                  {{ transactions.length }}
+                  de {{ transactions.length }}
                 </span>
 
                 <nav
                   class="pagination__controls"
-                  aria-label="
-                    Paginación de movimientos
-                  "
+                  aria-label="Paginación de movimientos"
                 >
-
                   <button
                     type="button"
                     class="pagination__button"
-                    [disabled]="
-                      !hasPreviousPage
-                    "
+                    [disabled]="!hasPreviousPage"
                     (click)="previousPage()"
-                    aria-label="
-                      Página anterior
-                    "
+                    aria-label="Página anterior"
                   >
                     ‹
                   </button>
 
-                  <span
-                    class="pagination__info"
-                  >
-                    {{ currentPage }}
-                    /
-                    {{ totalPages }}
+                  <span class="pagination__info">
+                    {{ currentPage }} / {{ totalPages }}
                   </span>
 
                   <button
                     type="button"
                     class="pagination__button"
-                    [disabled]="
-                      !hasNextPage
-                    "
+                    [disabled]="!hasNextPage"
                     (click)="nextPage()"
-                    aria-label="
-                      Página siguiente
-                    "
+                    aria-label="Página siguiente"
                   >
                     ›
                   </button>
-
                 </nav>
-
               </div>
-
             }
-
           } @else {
-
             <div class="empty-state">
-
-              <div class="empty-state__icon">
-                ↔
-              </div>
-
-              <strong>
-                No hay movimientos
-              </strong>
-
+              <div class="empty-state__icon">↔</div>
+              <strong>No hay movimientos</strong>
               <span>
-                No existen registros para
-                el inversionista seleccionado.
+                @if (dashboardInvestorId === 'ALL') {
+                  Aún no existen movimientos registrados.
+                } @else {
+                  No existen movimientos para {{ selectedDashboardInvestorName }}.
+                }
               </span>
-
             </div>
-
           }
-
         }
-
       </section>
-
     </div>
-
   </main>
-
 </div>

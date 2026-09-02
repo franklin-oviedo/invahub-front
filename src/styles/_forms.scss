@@ -542,3 +542,67 @@ button:disabled {
     font-size: 0.67rem;
   }
 }
+
+.transaction-form {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 8px;
+}
+
+.form-field {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  textarea {
+    min-height: 110px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--dark);
+    font-family: inherit;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
+
+    &::placeholder {
+      color: var(--text-muted);
+      opacity: 0.75;
+    }
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    &:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    &.ng-invalid.ng-touched {
+      border-color: #dc2626;
+    }
+  }
+}
+
+.money-input,
+.upload-zone {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}

@@ -10,7 +10,6 @@
       </div>
     </div>
   </header>
-
   <main class="dashboard">
     <section class="welcome">
       <div>
@@ -18,16 +17,11 @@
         <h1>Inversiones</h1>
         <p>Consulta el capital invertido, retornos, ganancias y movimientos recientes.</p>
       </div>
-      <button
-        type="button"
-        class="primary-button desktop-action"
-        (click)="transactionForm.scrollIntoView({ behavior: 'smooth' })"
-      >
+      <button type="button" class="primary-button desktop-action" (click)="transactionForm.scrollIntoView({ behavior: 'smooth' })">
         <span>+</span>
         Nuevo movimiento
       </button>
     </section>
-
     <section class="dashboard-filter" aria-label="Filtro del dashboard">
       <div class="dashboard-filter__content">
         <div class="dashboard-filter__title">
@@ -36,12 +30,7 @@
         </div>
         <div class="dashboard-filter__field">
           <label for="dashboardInvestor">Filtrar por inversionista</label>
-          <select
-            id="dashboardInvestor"
-            name="dashboardInvestor"
-            [(ngModel)]="dashboardInvestorId"
-            (ngModelChange)="onDashboardInvestorChange()"
-          >
+          <select id="dashboardInvestor" name="dashboardInvestor" [(ngModel)]="dashboardInvestorId" (ngModelChange)="onDashboardInvestorChange()">
             <option value="ALL">Todos los inversionistas</option>
             @for (investor of investors; track investor.id) {
               <option [value]="investor.id">{{ investor.name }}</option>
@@ -50,58 +39,42 @@
         </div>
       </div>
     </section>
-
     <section class="summary-grid" aria-label="Resumen financiero">
       <article class="summary-card summary-card--primary">
         <div class="summary-card__header">
           <span>Capital invertido</span>
           <div class="summary-card__icon">↓</div>
         </div>
-        <strong>
-          {{ invested | currency:'DOP':'symbol-narrow':'1.0-0' }}
-        </strong>
+        <strong>{{ invested | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
         <small>Total aportado</small>
       </article>
-
       <article class="summary-card">
         <div class="summary-card__header">
           <span>Capital retornado</span>
           <div class="summary-card__icon">↑</div>
         </div>
-        <strong>
-          {{ returned | currency:'DOP':'symbol-narrow':'1.0-0' }}
-        </strong>
+        <strong>{{ returned | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
         <small>Capital recuperado</small>
       </article>
-
       <article class="summary-card">
         <div class="summary-card__header">
           <span>Por retornar</span>
           <div class="summary-card__icon">◷</div>
         </div>
-        <strong>
-          {{ balanceToReturn | currency:'DOP':'symbol-narrow':'1.0-0' }}
-        </strong>
+        <strong>{{ balanceToReturn | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
         <small>Capital pendiente</small>
       </article>
-
       <article class="summary-card summary-card--profit">
         <div class="summary-card__header">
           <span>Ganancias</span>
           <div class="summary-card__icon">+</div>
         </div>
-        <strong>
-          {{ profit | currency:'DOP':'symbol-narrow':'1.0-0' }}
-        </strong>
+        <strong>{{ profit | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
         <small>Profit acumulado</small>
       </article>
     </section>
-
     <div class="content-grid">
-      <section
-        #transactionForm
-        class="panel transaction-panel"
-      >
+      <section #transactionForm class="panel transaction-panel">
         <div class="panel__header">
           <div>
             <span class="eyebrow">Registro</span>
@@ -109,138 +82,146 @@
             <p>Registra una inversión o retorno.</p>
           </div>
         </div>
-
-        <form
-          #transactionFormModel="ngForm"
-          class="transaction-form"
-          (ngSubmit)="submit()"
-        >
+        <form #transactionFormModel="ngForm" class="transaction-form" (ngSubmit)="submit()">
           <div class="form-field">
-            <label for="investor">
-              Inversionista
-              <span class="required">*</span>
-            </label>
-            <select
-              #investorInput="ngModel"
-              id="investor"
-              name="investor"
-              [(ngModel)]="selectedInvestorId"
-              required
-            >
+            <label for="investor">Inversionista <span class="required">*</span></label>
+            <select #investorInput="ngModel" id="investor" name="investor" [(ngModel)]="selectedInvestorId" (ngModelChange)="onInvestorChange()" required>
               <option value="" disabled>Selecciona un inversionista</option>
               @for (investor of investors; track investor.id) {
                 <option [value]="investor.id">{{ investor.name }}</option>
               }
             </select>
             @if (investorInput.invalid && investorInput.touched) {
-              <small class="field-error">
-                Debes seleccionar un inversionista.
-              </small>
+              <small class="field-error">Debes seleccionar un inversionista.</small>
             }
           </div>
-
           <fieldset class="type-selector">
             <legend>Tipo de movimiento</legend>
             <div class="segmented-control">
               <label [class.active]="transactionType === 'INVESTMENT'">
-                <input
-                  type="radio"
-                  name="transactionType"
-                  value="INVESTMENT"
-                  [(ngModel)]="transactionType"
-                />
+                <input type="radio" name="transactionType" value="INVESTMENT" [(ngModel)]="transactionType" (ngModelChange)="onTransactionTypeChange()" />
                 <span class="segment-icon">↓</span>
                 <span>Inversión</span>
               </label>
               <label [class.active]="transactionType === 'RETURN'">
-                <input
-                  type="radio"
-                  name="transactionType"
-                  value="RETURN"
-                  [(ngModel)]="transactionType"
-                />
+                <input type="radio" name="transactionType" value="RETURN" [(ngModel)]="transactionType" (ngModelChange)="onTransactionTypeChange()" />
                 <span class="segment-icon">↑</span>
                 <span>Retorno</span>
               </label>
             </div>
           </fieldset>
-
+          @if (isReturn) {
+            <div class="return-investment-section">
+              <div class="return-investment-section__header">
+                <div>
+                  <span class="return-investment-section__eyebrow">Capital pendiente</span>
+                  <strong>Selecciona la inversión</strong>
+                </div>
+                <span class="return-investment-section__icon">↗</span>
+              </div>
+              @if (!selectedInvestorId) {
+                <div class="investment-message">
+                  <span class="investment-message__icon">i</span>
+                  <div>
+                    <strong>Selecciona un inversionista</strong>
+                    <small>Primero debes elegir el inversionista para consultar sus inversiones pendientes.</small>
+                  </div>
+                </div>
+              } @else if (loadingInvestments) {
+                <div class="investment-loading">
+                  <span class="investment-loading__spinner"></span>
+                  <div>
+                    <strong>Cargando inversiones</strong>
+                    <small>Consultando capital pendiente...</small>
+                  </div>
+                </div>
+              } @else if (pendingInvestments.length > 0) {
+                <div class="form-field">
+                  <label for="investment">Inversión <span class="required">*</span></label>
+                  <select #investmentInput="ngModel" id="investment" name="investment" [(ngModel)]="selectedInvestmentId" required>
+                    <option value="" disabled>Selecciona una inversión pendiente</option>
+                    @for (investment of pendingInvestments; track investment.id) {
+                      <option [value]="investment.id">
+                        {{ investment.originalAmount | currency:'DOP':'symbol-narrow':'1.0-0' }} · Pendiente {{ investment.pendingCapital | currency:'DOP':'symbol-narrow':'1.0-0' }}
+                      </option>
+                    }
+                  </select>
+                  @if (investmentInput.invalid && investmentInput.touched) {
+                    <small class="field-error">Debes seleccionar la inversión que recibirá el retorno.</small>
+                  }
+                </div>
+                @if (selectedInvestmentId) {
+                  @for (investment of pendingInvestments; track investment.id) {
+                    @if (investment.id === selectedInvestmentId) {
+                      <div class="investment-detail">
+                        <div class="investment-detail__item">
+                          <span>Inversión original</span>
+                          <strong>{{ investment.originalAmount | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="investment-detail__item">
+                          <span>Capital retornado</span>
+                          <strong>{{ investment.returnedCapital | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="investment-detail__item investment-detail__item--pending">
+                          <span>Pendiente</span>
+                          <strong>{{ investment.pendingCapital | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="investment-detail__status">
+                          <span [class.investment-status--partial]="investment.status === 'PARTIAL'">
+                            {{ investment.status === 'PARTIAL' ? 'Pago parcial' : 'Pendiente' }}
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  }
+                }
+              } @else {
+                <div class="investment-message investment-message--success">
+                  <span class="investment-message__icon">✓</span>
+                  <div>
+                    <strong>Sin inversiones pendientes</strong>
+                    <small>Este inversionista no tiene capital pendiente por retornar.</small>
+                  </div>
+                </div>
+              }
+            </div>
+          }
           <div class="form-field">
-            <label for="amount">
-              Monto
-              <span class="required">*</span>
-            </label>
-            <div
-              class="money-input"
-              [class.money-input--invalid]="amountInput.invalid && amountInput.touched"
-            >
+            <label for="amount">{{ isReturn ? 'Monto recibido' : 'Monto' }} <span class="required">*</span></label>
+            <div class="money-input" [class.money-input--invalid]="amountInput.invalid && amountInput.touched">
               <span>RD$</span>
-              <input
-                #amountInput="ngModel"
-                id="amount"
-                name="amount"
-                type="number"
-                inputmode="decimal"
-                min="0.01"
-                step="0.01"
-                placeholder="0.00"
-                [(ngModel)]="amount"
-                required
-              />
+              <input #amountInput="ngModel" id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" [(ngModel)]="amount" required />
             </div>
             @if (amountInput.invalid && amountInput.touched) {
-              <small class="field-error">
-                Introduce un monto mayor que cero.
-              </small>
+              <small class="field-error">Introduce un monto mayor que cero.</small>
+            }
+            @if (isReturn && selectedInvestmentId) {
+              <small class="field-help">Si el monto supera el capital pendiente, la diferencia será registrada automáticamente como ganancia.</small>
             }
           </div>
-
           <div class="form-field">
-            <label for="description">
-              Descripción
-              <span>Opcional</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows="3"
-              maxlength="250"
-              placeholder="Ej. Retorno correspondiente a septiembre"
-              [(ngModel)]="description"
-            ></textarea>
+            <label for="description">Descripción <span>Opcional</span></label>
+            <textarea id="description" name="description" rows="3" maxlength="250" [placeholder]="isReturn ? 'Ej. Retorno correspondiente a septiembre' : 'Ej. Inversión correspondiente a septiembre'" [(ngModel)]="description"></textarea>
           </div>
-
           <div class="form-field">
-            <label>
-              Comprobante
-              <span>Opcional</span>
-            </label>
+            <label>Comprobante <span>Opcional</span></label>
             <label class="upload-area">
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-              />
+              <input type="file" accept="image/png,image/jpeg,image/webp" />
               <span class="upload-area__icon">+</span>
               <strong>Agregar comprobante</strong>
               <small>JPG, PNG o WEBP</small>
             </label>
           </div>
-
-          <button
-            type="submit"
-            class="primary-button full-width"
-            [disabled]="transactionFormModel.invalid || saving"
-          >
+          <button type="submit" class="primary-button full-width" [disabled]="transactionFormModel.invalid || saving || (isReturn && (loadingInvestments || !selectedInvestmentId))">
             @if (saving) {
               <span class="button-loader"></span>
               Guardando...
             } @else {
-              Guardar movimiento
+              {{ isReturn ? 'Registrar retorno' : 'Registrar inversión' }}
             }
           </button>
         </form>
       </section>
-
       <section class="panel history-panel">
         <div class="history-header">
           <div>
@@ -254,14 +235,8 @@
               }
             </p>
           </div>
-          <span
-            class="transaction-count"
-            aria-label="Cantidad de movimientos"
-          >
-            {{ transactions.length }}
-          </span>
+          <span class="transaction-count" aria-label="Cantidad de movimientos">{{ transactions.length }}</span>
         </div>
-
         @if (loading) {
           <div class="loading-state">
             <span class="loader"></span>
@@ -273,105 +248,37 @@
             <div class="transaction-list">
               @for (transaction of paginatedTransactions; track transaction.id) {
                 <article class="transaction-item">
-                  <div
-                    class="transaction-icon"
-                    [class.transaction-icon--return]="transaction.type === 'RETURN'"
-                  >
-                    {{ transaction.type === 'INVESTMENT' ? '↓' : '↑' }}
-                  </div>
-
+                  <div class="transaction-icon" [class.transaction-icon--return]="transaction.type === 'RETURN'">{{ transaction.type === 'INVESTMENT' ? '↓' : '↑' }}</div>
                   <div class="transaction-info">
                     <div class="transaction-info__top">
-                      <strong>
-                        {{ transaction.type === 'INVESTMENT' ? 'Inversión' : 'Retorno' }}
-                      </strong>
-                      <span
-                        class="transaction-type"
-                        [class.transaction-type--return]="transaction.type === 'RETURN'"
-                      >
-                        {{ transaction.type === 'INVESTMENT' ? 'Aporte' : 'Retorno' }}
-                      </span>
+                      <strong>{{ transaction.type === 'INVESTMENT' ? 'Inversión' : 'Retorno' }}</strong>
+                      <span class="transaction-type" [class.transaction-type--return]="transaction.type === 'RETURN'">{{ transaction.type === 'INVESTMENT' ? 'Aporte' : 'Retorno' }}</span>
                     </div>
-
-                    <span class="transaction-investor">
-                      {{ getInvestorName(transaction.user_id) }}
-                    </span>
-
-                    <span class="transaction-date">
-                      {{ transaction.created_at | date:'dd MMM yyyy' }}
-                    </span>
-
+                    <span class="transaction-investor">{{ getInvestorName(transaction.user_id) }}</span>
+                    <span class="transaction-date">{{ transaction.created_at | date:'dd MMM yyyy' }}</span>
                     @if (transaction.description) {
-                      <small class="transaction-description">
-                        {{ transaction.description }}
-                      </small>
+                      <small class="transaction-description">{{ transaction.description }}</small>
                     }
                   </div>
-
                   <div class="transaction-amount">
-                    <strong>
-                      {{ transaction.amount | currency:'DOP':'symbol-narrow':'1.0-0' }}
-                    </strong>
-
+                    <strong>{{ transaction.amount | currency:'DOP':'symbol-narrow':'1.0-0' }}</strong>
                     @if (transaction.type === 'RETURN') {
-                      <small>
-                        Capital
-                        {{ transaction.capital | currency:'DOP':'symbol-narrow':'1.0-0' }}
-                      </small>
-
+                      <small>Capital {{ transaction.capital | currency:'DOP':'symbol-narrow':'1.0-0' }}</small>
                       @if (transaction.profit > 0) {
-                        <span class="transaction-profit">
-                          +{{ transaction.profit | currency:'DOP':'symbol-narrow':'1.0-0' }}
-                          profit
-                        </span>
+                        <span class="transaction-profit">+{{ transaction.profit | currency:'DOP':'symbol-narrow':'1.0-0' }} profit</span>
                       }
                     }
                   </div>
                 </article>
               }
             </div>
-
             @if (transactions.length > pageSize) {
               <div class="pagination">
-                <span class="pagination__summary">
-                  Mostrando
-                  {{ (currentPage - 1) * pageSize + 1 }}
-                  -
-                  {{
-                    currentPage * pageSize > transactions.length
-                      ? transactions.length
-                      : currentPage * pageSize
-                  }}
-                  de {{ transactions.length }}
-                </span>
-
-                <nav
-                  class="pagination__controls"
-                  aria-label="Paginación de movimientos"
-                >
-                  <button
-                    type="button"
-                    class="pagination__button"
-                    [disabled]="!hasPreviousPage"
-                    (click)="previousPage()"
-                    aria-label="Página anterior"
-                  >
-                    ‹
-                  </button>
-
-                  <span class="pagination__info">
-                    {{ currentPage }} / {{ totalPages }}
-                  </span>
-
-                  <button
-                    type="button"
-                    class="pagination__button"
-                    [disabled]="!hasNextPage"
-                    (click)="nextPage()"
-                    aria-label="Página siguiente"
-                  >
-                    ›
-                  </button>
+                <span class="pagination__summary">Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ currentPage * pageSize > transactions.length ? transactions.length : currentPage * pageSize }} de {{ transactions.length }}</span>
+                <nav class="pagination__controls" aria-label="Paginación de movimientos">
+                  <button type="button" class="pagination__button" [disabled]="!hasPreviousPage" (click)="previousPage()" aria-label="Página anterior">‹</button>
+                  <span class="pagination__info">{{ currentPage }} / {{ totalPages }}</span>
+                  <button type="button" class="pagination__button" [disabled]="!hasNextPage" (click)="nextPage()" aria-label="Página siguiente">›</button>
                 </nav>
               </div>
             }

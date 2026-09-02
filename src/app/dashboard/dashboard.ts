@@ -7,8 +7,15 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Transaction } from '../../utils/transaction.model';
-import { TransactionsService } from '../../utils/transactions.service';
+import {
+  PendingInvestment,
+  Transaction,
+  TransactionType,
+} from '../../utils/transaction.model';
+
+import {
+  TransactionsService,
+} from '../../utils/transactions.service';
 
 interface Investor {
   id: string;
@@ -24,7 +31,8 @@ interface Investor {
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection:
+    ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit {
   readonly investors: Investor[] = [
@@ -47,10 +55,12 @@ export class Dashboard implements OnInit {
   ];
 
   selectedInvestorId = '';
+  selectedInvestmentId = '';
 
   dashboardInvestorId = 'ALL';
 
-  transactionType: 'INVESTMENT' | 'RETURN' =
+  transactionType:
+    TransactionType =
     'INVESTMENT';
 
   amount: number | null = null;
@@ -58,12 +68,16 @@ export class Dashboard implements OnInit {
 
   transactions: Transaction[] = [];
 
+  pendingInvestments:
+    PendingInvestment[] = [];
+
   invested = 0;
   returned = 0;
   profit = 0;
 
   loading = false;
   saving = false;
+  loadingInvestments = false;
 
   currentPage = 1;
 
@@ -72,7 +86,8 @@ export class Dashboard implements OnInit {
   constructor(
     private readonly transactionsService:
       TransactionsService,
-    private readonly cdr: ChangeDetectorRef,
+    private readonly cdr:
+      ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -118,6 +133,13 @@ export class Dashboard implements OnInit {
     );
   }
 
+  get isReturn(): boolean {
+    return (
+      this.transactionType ===
+      'RETURN'
+    );
+  }
+
   get selectedDashboardInvestorName(): string {
     if (
       this.dashboardInvestorId ===
@@ -138,8 +160,28 @@ export class Dashboard implements OnInit {
 
   onDashboardInvestorChange(): void {
     this.currentPage = 1;
-
     this.loadTransactions();
+  }
+
+  onInvestorChange(): void {
+    this.selectedInvestmentId = '';
+    this.pendingInvestments = [];
+
+    if (this.isReturn) {
+      this.loadPendingInvestments();
+    }
+  }
+
+  onTransactionTypeChange(): void {
+    this.selectedInvestmentId = '';
+    this.pendingInvestments = [];
+
+    if (
+      this.isReturn &&
+      this.selectedInvestorId
+    ) {
+      this.loadPendingInvestments();
+    }
   }
 
   loadTransactions(): void {
@@ -164,7 +206,6 @@ export class Dashboard implements OnInit {
 
           this.finishLoading();
         },
-
         error: error => {
           console.error(
             'Error cargando transacciones:',
@@ -180,12 +221,56 @@ export class Dashboard implements OnInit {
       });
   }
 
+  loadPendingInvestments(): void {
+    if (!this.selectedInvestorId) {
+      this.pendingInvestments = [];
+      return;
+    }
+
+    this.loadingInvestments = true;
+
+    this.transactionsService
+      .findPendingInvestments(
+        this.selectedInvestorId,
+      )
+      .subscribe({
+        next: investments => {
+          this.pendingInvestments =
+            investments ?? [];
+
+          this.loadingInvestments =
+            false;
+
+          this.cdr.markForCheck();
+        },
+        error: error => {
+          console.error(
+            'Error cargando inversiones pendientes:',
+            error,
+          );
+
+          this.pendingInvestments = [];
+          this.loadingInvestments =
+            false;
+
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
   submit(): void {
     if (
       !this.selectedInvestorId ||
       !this.amount ||
       this.amount <= 0 ||
       this.saving
+    ) {
+      return;
+    }
+
+    if (
+      this.isReturn &&
+      !this.selectedInvestmentId
     ) {
       return;
     }
@@ -200,6 +285,10 @@ export class Dashboard implements OnInit {
           this.transactionType,
         amount:
           this.amount,
+        investment_id:
+          this.isReturn
+            ? this.selectedInvestmentId
+            : undefined,
         description:
           this.description.trim() ||
           undefined,
@@ -212,7 +301,6 @@ export class Dashboard implements OnInit {
 
           this.loadTransactions();
         },
-
         error: error => {
           console.error(
             'Error guardando movimiento:',
@@ -227,9 +315,7 @@ export class Dashboard implements OnInit {
   }
 
   previousPage(): void {
-    if (
-      !this.hasPreviousPage
-    ) {
+    if (!this.hasPreviousPage) {
       return;
     }
 
@@ -237,9 +323,7 @@ export class Dashboard implements OnInit {
   }
 
   nextPage(): void {
-    if (
-      !this.hasNextPage
-    ) {
+    if (!this.hasNextPage) {
       return;
     }
 
@@ -314,12 +398,15 @@ export class Dashboard implements OnInit {
 
   private resetForm(): void {
     this.selectedInvestorId = '';
+    this.selectedInvestmentId = '';
 
     this.transactionType =
       'INVESTMENT';
 
     this.amount = null;
     this.description = '';
+
+    this.pendingInvestments = [];
   }
 
   private finishLoading(): void {

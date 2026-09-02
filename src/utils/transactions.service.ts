@@ -1,11 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {
-  Observable,
-} from 'rxjs';
+import { Observable } from 'rxjs';
 
 import {
   CreateTransactionRequest,
+  PendingInvestment,
   Transaction,
 } from './transaction.model';
 
@@ -25,8 +24,7 @@ export class TransactionsService {
   ) {}
 
   create(
-    transaction:
-      CreateTransactionRequest,
+    transaction: CreateTransactionRequest,
   ): Observable<Transaction> {
     return this.http.post<Transaction>(
       this.apiUrl,
@@ -44,5 +42,16 @@ export class TransactionsService {
     return this.http.get<Transaction[]>(
       url,
     );
+  }
+
+  findPendingInvestments(
+    userId: string,
+  ): Observable<PendingInvestment[]> {
+    const url =
+      `${this.apiUrl}/investments/pending?user_id=${encodeURIComponent(userId)}`;
+
+    return this.http.get<
+      PendingInvestment[]
+    >(url);
   }
 }

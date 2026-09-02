@@ -643,3 +643,38 @@
     justify-content: center;
   }
 }
+
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.footer__content {
+  width: 100%;
+  padding: 22px 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.footer__separator {
+  color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .footer__content {
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 16px;
+  }
+
+  .footer__separator {
+    display: none;
+  }
+}

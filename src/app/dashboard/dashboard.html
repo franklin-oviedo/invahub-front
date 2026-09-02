@@ -114,7 +114,7 @@
             }
           </div>
           <fieldset class="type-selector">
-            <legend>Tipo de movimiento</legend>
+            <legend>Tipo de movimiento <span class="required">*</span></legend>
             <div class="segmented-control">
               <label [class.active]="transactionType === 'INVESTMENT'">
                 <input
@@ -123,6 +123,7 @@
                   value="INVESTMENT"
                   [(ngModel)]="transactionType"
                   (ngModelChange)="onTransactionTypeChange()"
+                  required
                 />
                 <span class="segment-icon">↓</span>
                 <span>Inversión</span>
@@ -134,6 +135,7 @@
                   value="RETURN"
                   [(ngModel)]="transactionType"
                   (ngModelChange)="onTransactionTypeChange()"
+                  required
                 />
                 <span class="segment-icon">↑</span>
                 <span>Retorno</span>
@@ -222,9 +224,10 @@
                         <div class="investment-detail__status">
                           <span
                             [class.investment-status--partial]="investment.status === 'PARTIAL'"
+                            >{{
+                              investment.status === 'PARTIAL' ? 'Pago parcial' : 'Pendiente'
+                            }}</span
                           >
-                            {{ investment.status === 'PARTIAL' ? 'Pago parcial' : 'Pendiente' }}
-                          </span>
                         </div>
                       </div>
                     }
@@ -274,8 +277,9 @@
             }
           </div>
           <div class="form-field">
-            <label for="description">Descripción <span>Opcional</span></label>
+            <label for="description">Descripción <span class="required">*</span></label>
             <textarea
+              #descriptionInput="ngModel"
               id="description"
               name="description"
               rows="3"
@@ -286,16 +290,49 @@
                   : 'Ej. Inversión correspondiente a septiembre'
               "
               [(ngModel)]="description"
+              required
             ></textarea>
+            @if (descriptionInput.invalid && descriptionInput.touched) {
+              <small class="field-error">La descripción es obligatoria.</small>
+            }
           </div>
           <div class="form-field">
-            <label>Comprobante <span>Opcional</span></label>
-            <label class="upload-area">
-              <input type="file" accept="image/png,image/jpeg,image/webp" />
-              <span class="upload-area__icon">+</span>
-              <strong>Agregar comprobante</strong>
-              <small>JPG, PNG o WEBP</small>
+            <label for="voucher">Comprobante <span class="required">*</span></label>
+            <label
+              class="upload-zone"
+              for="voucher"
+              [class.upload-zone--selected]="selectedVoucher"
+              [class.upload-zone--error]="voucherError"
+            >
+              <input
+                id="voucher"
+                name="voucher"
+                type="file"
+                accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
+                (change)="onVoucherSelected($event)"
+                required
+              />
+              <span class="upload-zone__icon">{{ selectedVoucher ? '✓' : '↑' }}</span>
+              <div class="upload-zone__content">
+                @if (selectedVoucher) {
+                  <strong>{{ selectedVoucher.name }}</strong>
+                  <small
+                    >{{ selectedVoucher.size / 1024 / 1024 | number: '1.2-2' }} MB · Archivo listo
+                    para subir</small
+                  >
+                } @else {
+                  <strong>Seleccionar comprobante</strong>
+                  <small>JPG, JPEG, PNG, WEBP o PDF · Máximo 5 MB</small>
+                }
+              </div>
             </label>
+            @if (voucherError) {
+              <small class="field-error">{{ voucherError }}</small>
+            } @else if (!selectedVoucher) {
+              <small class="field-help"
+                >El comprobante es obligatorio para registrar el movimiento.</small
+              >
+            }
           </div>
           <button
             type="submit"
@@ -303,11 +340,11 @@
             [disabled]="
               transactionFormModel.invalid ||
               saving ||
+              !selectedVoucher ||
               (isReturn && (loadingInvestments || !selectedInvestmentId))
             "
           >
             @if (saving) {
-              <span class="button-loader"></span>
               Guardando...
             } @else {
               {{ isReturn ? 'Registrar retorno' : 'Registrar inversión' }}
@@ -369,6 +406,23 @@
                     @if (transaction.description) {
                       <small class="transaction-description">{{ transaction.description }}</small>
                     }
+                    <div class="transaction-voucher">
+                      @if (transaction.voucher_path) {
+                        <button
+                          type="button"
+                          class="voucher-link"
+                          (click)="previewVoucher(transaction)"
+                          [attr.aria-label]="
+                            'Ver comprobante de ' + getInvestorName(transaction.user_id)
+                          "
+                        >
+                          <span class="voucher-link__icon">↗</span>
+                          <span>Ver comprobante</span>
+                        </button>
+                      } @else {
+                        <span class="voucher-unavailable">Comprobante no disponible</span>
+                      }
+                    </div>
                   </div>
                   <div class="transaction-amount">
                     <strong>{{
@@ -445,11 +499,52 @@
       </section>
     </div>
   </main>
+  @if (voucherPreviewUrl) {
+    <div
+      class="voucher-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Vista previa del comprobante"
+      (click)="closeVoucherPreview()"
+    >
+      <div class="voucher-modal__content" (click)="$event.stopPropagation()">
+        <div class="voucher-modal__header">
+          <div>
+            <span class="eyebrow">Comprobante</span>
+            <strong>Vista previa</strong>
+          </div>
+          <button
+            type="button"
+            class="voucher-modal__close"
+            (click)="closeVoucherPreview()"
+            aria-label="Cerrar comprobante"
+          >
+            ×
+          </button>
+        </div>
+        <div class="voucher-modal__body">
+          @if (voucherPreviewType === 'IMAGE') {
+            <img
+              class="voucher-preview-image"
+              [src]="voucherPreviewUrl"
+              alt="Comprobante de la transacción"
+            />
+          } @else if (voucherPreviewType === 'PDF' && voucherPreviewSafeUrl) {
+            <iframe
+              class="voucher-preview-pdf"
+              [src]="voucherPreviewSafeUrl"
+              title="Comprobante de la transacción"
+            ></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
   <footer class="footer">
-  <div class="footer__content">
-    <span>© 2026 InvaHub</span>
-    <span class="footer__separator">•</span>
-    <span>Kolectiv. Todos los derechos reservados.</span>
-  </div>
-</footer>
+    <div class="footer__content">
+      <span>© 2026 InvaHub</span>
+      <span class="footer__separator">•</span>
+      <span>Kolectiv. Todos los derechos reservados.</span>
+    </div>
+  </footer>
 </div>

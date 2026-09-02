@@ -1,6 +1,9 @@
 export type TransactionType =
   'INVESTMENT' | 'RETURN';
 
+export type InvestmentStatus =
+  'PENDING' | 'PARTIAL' | 'PAID';
+
 export interface Transaction {
   id: string;
   user_id: string;
@@ -10,7 +13,7 @@ export interface Transaction {
   profit: number;
   investment_id?: string | null;
   description?: string | null;
-  voucher_path?: string | null;
+  voucher_path: string;
   created_at: string;
 }
 
@@ -18,12 +21,10 @@ export interface CreateTransactionRequest {
   user_id: string;
   type: TransactionType;
   amount: number;
+  voucher: File;
   investment_id?: string;
   description?: string;
 }
-
-export type InvestmentStatus =
-  'PENDING' | 'PARTIAL' | 'PAID';
 
 export interface PendingInvestment
   extends Transaction {

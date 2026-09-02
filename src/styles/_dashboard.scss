@@ -35,18 +35,19 @@
 }
 
 .brand__mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  border-radius: 13px;
-  background: linear-gradient(135deg, var(--dark), var(--primary));
-  color: #fff;
-  box-shadow: 0 7px 18px rgba(0, 93, 116, 0.18);
-  font-size: 0.78rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
+
+  img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    display: block;
+  }
 }
 
 .brand__text {
